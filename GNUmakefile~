@@ -1,0 +1,7 @@
+include /usr/share/GNUstep/Makefiles/common.make
+
+TOOL_NAME = RPGeez
+RPGeez_OBJC_FILES = driver.m player.m
+RPGeeze_HEADER_FILES = player.h
+
+include /usr/share/GNUstep/Makefiles/tool.make
