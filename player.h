@@ -9,22 +9,27 @@
    int medals;
 
    //stats
-   double hp;
-   double strength;
-   double mana;
-   double intelligence;
-   double speed;
+   int max_hp;
+   int health;
+   int strength;
+   int mana;
+   int max_mana;
+   int intelligence;
+   int speed;
+
+   int abilities[4];
 }
 + (instancetype) PlayerWithName: (NSString *) name andClass: (int) cls;
 - (id) initWithName: (NSString *) name andClass: (int) cls;
-- (void) damage: (double) points;
+- (void) damage: (int) points;
 - (NSString *) getName;
 - (int) getLevel;
-- (double) getXP;
-- (double) getHP;
+- (int) getXP;
+- (int) getHP;
 - (char *) getClass;
 - (int) getLocation;
 - (void) setLocation: (int) loc;
 - (int) getMedals;
 - (void) addMedal;
+- (int) attackWithAbility: (int) ability;
 @end
