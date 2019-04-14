@@ -16,20 +16,25 @@
    int max_mana;
    int intelligence;
    int speed;
-
-   int abilities[4];
+   NSArray * abilities;
 }
+@property (readonly) NSString * name;
+@property int level;
+@property int xp;
+@property int class;
+@property int location;
+@property int medals;
+@property int max_hp;
+@property int health;
+@property int strength;
+@property int mana;
+@property int max_mana;
+@property int intelligence;
+@property int speed;
+@property (nonatomic, retain) NSArray * abilities;
+
 + (instancetype) PlayerWithName: (NSString *) name andClass: (int) cls;
 - (id) initWithName: (NSString *) name andClass: (int) cls;
 - (void) damage: (int) points;
-- (NSString *) getName;
-- (int) getLevel;
-- (int) getXP;
-- (int) getHP;
-- (char *) getClass;
-- (int) getLocation;
-- (void) setLocation: (int) loc;
-- (int) getMedals;
-- (void) addMedal;
 - (int) attackWithAbility: (int) ability;
 @end

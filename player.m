@@ -13,99 +13,72 @@ typedef enum {None, Slash, Haymaker, Disarm, Heal, Fireball, Lifesteal, Boom, Ma
 const int manaCosts[] = {0, 0, 0, 0, 5, 0, 10, 30, 0, 0, 0, 0, 0};
 
 @implementation Player
+@synthesize name;
+@synthesize level;
+@synthesize xp;
+@synthesize class;
+@synthesize location;
+@synthesize medals;
+@synthesize max_hp;
+@synthesize health;
+@synthesize strength;
+@synthesize mana;
+@synthesize max_mana;
+@synthesize intelligence;
+@synthesize speed;
+@synthesize abilities;
+
 + (instancetype) PlayerWithName: (NSString *) n andClass: (int) cls{
   Player * p = [[Player alloc] initWithName:n andClass: cls];
   return p;
 }
 - (id) initWithName: (NSString *) n andClass: (int) c{
   self = [super init];
-  if (self){
-    self->name = n;
-    self->class = c;
-    self->xp = 0;
-    self->level = 1;
+  self->name = n;
+  self->class = c;
+  self->xp = 0;
+  self->level = 1;
 
-    self->health = 100;
-    self->max_hp = 100;
-    self->strength = 1;
-    self->mana = 1;
-    self->max_mana = 1;
-    self->intelligence = 1;
-    self->speed = 1;
+  self->health = 100;
+  self->max_hp = 100;
+  self->strength = 3;
+  self->mana = 3;
+  self->max_mana = 3;
+  self->intelligence = 3;
+  self->speed = 2;
 
-    switch(self->class){
-      case Warrior:
-        self->abilities[0] = Slash;
-        self->abilities[1] = None;
-        self->abilities[2] = None;
-        self->abilities[3] = None;
-        break;
-      case Mage:
-        self->abilities[0] = Fireball;
-        self->abilities[1] = None;
-        self->abilities[2] = None;
-        self->abilities[3] = None;
-        break;
-      case Thief:
-        self->abilities[0] = Stab;
-        self->abilities[1] = None;
-        self->abilities[2] = None;
-        self->abilities[3] = None;
-        break;
-    }
+  //setup initial abilities for each class
+  puts("switch");
+  NSMutableArray *tempAbilities = [NSMutableArray array];
+  switch(self->class){
+    case Warrior:
+      [tempAbilities addObject:[NSNumber numberWithInteger:Slash]];
+      [tempAbilities addObject:[NSNumber numberWithInteger:None]];
+      [tempAbilities addObject:[NSNumber numberWithInteger:None]];
+      [tempAbilities addObject:[NSNumber numberWithInteger:None]];
+      break;
+    case Mage:
+      [tempAbilities addObject:[NSNumber numberWithInteger:Fireball]];
+      [tempAbilities addObject:[NSNumber numberWithInteger:None]];
+      [tempAbilities addObject:[NSNumber numberWithInteger:None]];
+      [tempAbilities addObject:[NSNumber numberWithInteger:None]];
+      break;
+    case Thief:
+      [tempAbilities addObject:[NSNumber numberWithInteger:Stab]];
+      [tempAbilities addObject:[NSNumber numberWithInteger:None]];
+      [tempAbilities addObject:[NSNumber numberWithInteger:None]];
+      [tempAbilities addObject:[NSNumber numberWithInteger:None]];
+      break;
   }
+  puts("ya?");
+  self->abilities = tempAbilities;
+  puts("ya.");
   return self;
 }
 - (void) damage: (int) points{
   self = [super init];
   self->health -= points;
 }
-
-- (NSString *) getName{
-  self = [super init];
-  return self->name;
-}
-
-- (int) getLevel{
-  self = [super init];
-  return self->level;
-}
-
-- (int) getXP{
-  self = [super init];
-  return self->xp;
-}
-
-- (int) getHP{
-  self = [super init];
-  return self->health;
-}
-
-- (char *) getClass{
-  self = [super init];
-  return (char *)Classes[self->class];
-}
-
-- (int) getLocation{
-  self = [super init];
-  return self->location;
-}
-
-- (void) setLocation: (int) loc{
-  self = [super init];
-  self->location = loc;
-}
-
-- (int) getMedals{
-  self = [super init];
-  return self->medals;
-}
-
-- (void) addMedal{
-  self = [super init];
-  self->medals += 1;
-}
-
 - (int) attackWithAbility: (int) ability{
   self = [super init];
   switch (ability){

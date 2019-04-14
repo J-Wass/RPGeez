@@ -35,77 +35,79 @@ int main (int argc, const char * argv[]){
       strtok(name, "\n");
       NSString * player_name = [NSString stringWithUTF8String:name];
       Player * pl = [Player PlayerWithName:player_name andClass: class];
-      [pl setLocation:0]; //location 0 is Town
+      puts("test1");
+      [pl setLocation:Grasslands]; //location 0 is Town
+      puts("test2");
 
-      printf("\nWelcome %s the %s to RPGeez.\n", [[pl getName] UTF8String], [pl getClass]);
+      printf("\nWelcome %s the %s to RPGeez.\n", [[pl name] UTF8String], Player_Classes[[pl class]]);
       printf("::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\n\n");
       printf("Type \"help\" for a list of available actions.\n\n");
 
       //main game loop
       short in_battle = 0;
       Enemy * enemy;
-      while ([pl getHP] > 0 && [pl getMedals] < 10){
+      while ([pl health] > 0 && [pl medals] < 10){
         while(in_battle){
           //print stats
           printf("----------------------------------------\n");
-          printf("|HP %d/%d                 HP %d/%d\n",pl->health,pl->max_hp,enemy->health,enemy->max_hp);
-          printf("|MP %d/%d                 MP %d/%d\n", pl->mana,pl->max_mana,enemy->mana,enemy->max_mana);
-          printf("|Your Stats              %s's Stats\n",[enemy->name UTF8String]);
+          printf("|HP %d/%d              HP %d/%d\n",[pl health],[pl max_hp],[enemy health],[enemy max_hp]);
+          printf("|MP %d/%d                  MP %d/%d\n", [pl mana],[pl max_mana],[enemy mana],[enemy max_mana]);
+          printf("|Your Stats              %s's Stats\n",[[enemy name] UTF8String]);
           printf("|---------               -----------\n");
-          printf("|STR:%d                   STR:%d \n", pl->strength, enemy->strength);
-          printf("|INT:%d                   INT:%d \n", pl->intelligence, enemy->intelligence);
-          printf("|SPD:%d                   SPD:%d \n", pl->speed, enemy->speed);
+          printf("|STR:%d                   STR:%d \n", [pl strength], [enemy strength]);
+          printf("|INT:%d                   INT:%d \n", [pl intelligence], [enemy intelligence]);
+          printf("|SPD:%d                   SPD:%d \n", [pl speed], [enemy speed]);
           printf("----------------------------------------\n\n");
 
           //ask for user attack
           int attack = -1;
-          while(attack != pl->abilities[0] && attack != pl->abilities[1] && attack != pl->abilities[2] && attack != pl->abilities[3]){
+          while(attack != [[pl.abilities objectAtIndex: 0] intValue] && attack != [[pl.abilities objectAtIndex: 1] intValue] && attack != [[pl.abilities objectAtIndex: 2] intValue] && attack != [[pl.abilities objectAtIndex: 3] intValue]){
             printf("Valid abilities: \n");
             int i = 0;
-            for(i = 0; i < 4; i++){
-              if(pl->abilities[i] != None){
-                printf("\t %s (%d MP) = type \"%d\" to use... \n", Player_Abilities[pl->abilities[i]], player_manaCosts[i], i);
+            for(NSNumber * ability in pl.abilities){
+              if([ability intValue] != None){
+                printf("\t %s (%d MP) = type \"%d\" to use... \n", Player_Abilities[[ability intValue]], player_manaCosts[[ability intValue]], i);
               }
+              i++;
             }
             printf("> ");
-            char choice_str[2] = "00";
-            memset(choice_str, 0, sizeof(choice_str));
-            gets(choice_str);
-            int choice = atoi(choice_str);
+            int choice;
+            scanf("%d", &choice);
             if (choice >= 0 && choice <= 3){
-              if (pl->abilities[choice] != None){
-                attack = pl->abilities[choice];
+              if ([[pl.abilities objectAtIndex: choice] intValue] != None){
+                attack = [[pl.abilities objectAtIndex: choice] intValue];
               }
             }
           }
 
           //determine who can attack based on speed
-          int attacker = rand() % (enemy->speed + pl->speed);
-          if(attacker < pl->speed){
+          int attacker = rand() % (enemy.speed + pl.speed);
+          if(attacker < pl.speed){
             //attack with chosen ability
             int damage = [pl attackWithAbility:attack];
-            printf("\nHit %s for %d\n", [enemy->name UTF8String], damage);
+            printf("\nHit %s for %d!\n", [enemy.name UTF8String], damage);
             [enemy damage:damage];
           }
           else{
             int damage = [enemy attack];
             [pl damage:damage];
-            printf("You were hit for %d. (You were too slow to attack before the %s did!)\n", damage, [enemy->name UTF8String]);
+            printf("You were hit for %d!\n", damage, [[enemy name] UTF8String]);
           }
-          if(pl->health <= 0){
+          if(pl.health <= 0){
             printf("You are dead.");
             in_battle = 0;
           }
-          if(enemy->health <= 0){
-            int gold = enemy->value + rand() % 5;
-            int xp = enemy->value + rand() % 10;
-            printf("Defeated %s. Gained %d xp and %d gold.\n", [enemy->name UTF8String], xp, gold);
+          if(enemy.health <= 0){
+            int gold = enemy.value + rand() % 5;
+            int xp = enemy.value + rand() % 10;
+            pl.mana = pl.max_mana;
+            printf("Defeated %s. Gained %d xp and %d gold.\n", [enemy.name UTF8String], xp, gold);
             in_battle = 0;
           }
         }
 
         printf("\n\n");
-        printf("You are currently in the %s...\n", (char *)Player_Locations[[pl getLocation]]);
+        printf("You are currently in the %s...\n", (char *)Player_Locations[pl.location]);
         printf("What do you want to do?\n> ");
         char action[2000];
         fgets(action, 2000, stdin);
@@ -143,7 +145,7 @@ int main (int argc, const char * argv[]){
           // Mountains = 5   Town = 0 (Arena=1)     Desert = 3
           //
           //                  Forest = 4
-          switch ([pl getLocation]){
+          switch (pl.location){
             case Town:
               if (strcmp(direction, "north") == 0){
                 [pl setLocation:Grasslands];
@@ -223,7 +225,7 @@ int main (int argc, const char * argv[]){
         }
         else if (strcmp(nextWord, "search") == 0 || strcmp(nextWord, "s") == 0){
           int found_monster = 0;
-          switch([pl getLocation]){
+          switch(pl.location){
             case Town:
               printf("There are no monsters to search for in the town...\n");
               break;
