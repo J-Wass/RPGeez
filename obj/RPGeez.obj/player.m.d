@@ -142,7 +142,7 @@ obj/RPGeez.obj/player.m.o: player.m \
  /usr/include/GNUstep/Foundation/NSXMLDTD.h \
  /usr/include/GNUstep/Foundation/NSXMLDTDNode.h \
  /usr/include/GNUstep/Foundation/NSXMLElement.h \
- /usr/include/GNUstep/Foundation/NSXMLParser.h player.h
+ /usr/include/GNUstep/Foundation/NSXMLParser.h player.h enemy.h
 
 /usr/include/GNUstep/Foundation/Foundation.h:
 
@@ -433,3 +433,5 @@ obj/RPGeez.obj/player.m.o: player.m \
 /usr/include/GNUstep/Foundation/NSXMLParser.h:
 
 player.h:
+
+enemy.h:

@@ -6,11 +6,11 @@
 
 const char* Player_Classes[] = {"Warrior", "Mage", "Thief", "Paladin", "Wizard", "Assassin"};
 const char* Player_Locations[] = {"Town", "Arena", "Grasslands", "Desert", "Forest", "Mountains"};
-const char* Player_Abilities[] = {"None", "Slash", "Parry", "Disarm", "Heal", "Fireball", "Lifesteal", "Boom", "ManaGain", "Stab", "Knife", "Poison", "Assassinate"};
+const char* Player_Abilities[] = {"None", "Slash", "Herotime", "Haymaker", "Heal", "Fireball", "Lifesteal", "Boom", "ManaGain", "Stab", "Misdirect", "Steal", "Assassinate"};
 typedef enum {Town, Arena, Grasslands, Desert, Forest, Mountains} location_codes;
 typedef enum {Common_Lynx, Sand_Elemental, Rock_Golem, Wood_Elf, Dark_Elf, Griffin, Phoenix} monster_codes;
-typedef enum {None, Slash, Parry, Disarm, Heal, Fireball, Lifesteal, Boom, ManaGain, Stab, Knife, Poison, Assassinate} ability_codes;
-const int player_manaCosts[] = {0, 0, 0, 0, 5, 0, 10, 30, 0, 0, 0, 0, 0};
+typedef enum {None, Slash, Herotime, Haymaker, Heal, Fireball, Lifesteal, Boom, ManaGain, Stab, Misdirect, Steal, Assassinate} ability_codes;
+const int player_manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 20, 0, 0, 0, 0, 0};
 
 int main (int argc, const char * argv[]){
       srand(time(NULL)); //setup randomness seed
@@ -35,9 +35,7 @@ int main (int argc, const char * argv[]){
       strtok(name, "\n");
       NSString * player_name = [NSString stringWithUTF8String:name];
       Player * pl = [Player PlayerWithName:player_name andClass: class];
-      puts("test1");
-      [pl setLocation:Grasslands]; //location 0 is Town
-      puts("test2");
+      [pl setLocation:Town];
 
       printf("\nWelcome %s the %s to RPGeez.\n", [[pl name] UTF8String], Player_Classes[[pl class]]);
       printf("::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\n\n");
@@ -48,15 +46,18 @@ int main (int argc, const char * argv[]){
       Enemy * enemy;
       while ([pl health] > 0 && [pl medals] < 10){
         while(in_battle){
+          if(pl.mana < pl.max_mana){
+            pl.mana++;
+          }
           //print stats
-          printf("----------------------------------------\n");
-          printf("|HP %d/%d              HP %d/%d\n",[pl health],[pl max_hp],[enemy health],[enemy max_hp]);
-          printf("|MP %d/%d                  MP %d/%d\n", [pl mana],[pl max_mana],[enemy mana],[enemy max_mana]);
-          printf("|Your Stats              %s's Stats\n",[[enemy name] UTF8String]);
-          printf("|---------               -----------\n");
-          printf("|STR:%d                   STR:%d \n", [pl strength], [enemy strength]);
-          printf("|INT:%d                   INT:%d \n", [pl intelligence], [enemy intelligence]);
-          printf("|SPD:%d                   SPD:%d \n", [pl speed], [enemy speed]);
+          printf("\n----------------------------------------\n");
+          printf("|Your Stats\t%s's Stats\n",[[enemy name] UTF8String]);
+          printf("|---------\t-----------\n");
+          printf("|HP %d/%d\tHP %d/%d\n",[pl health],[pl max_hp],[enemy health],[enemy max_hp]);
+          printf("|MP %d/%d  \tMP %d/%d\n", [pl mana],[pl max_mana],[enemy mana],[enemy max_mana]);
+          printf("|STR:%d  \tSTR:%d \n", [pl strength], [enemy strength]);
+          printf("|INT:%d  \tINT:%d \n", [pl intelligence], [enemy intelligence]);
+          printf("|SPD:%d  \tSPD:%d \n", [pl speed], [enemy speed]);
           printf("----------------------------------------\n\n");
 
           //ask for user attack
@@ -71,11 +72,17 @@ int main (int argc, const char * argv[]){
               i++;
             }
             printf("> ");
-            int choice;
+            int choice = -1;
             scanf("%d", &choice);
+            getchar(); //grab the trailing newline from stdin... its weird i know
             if (choice >= 0 && choice <= 3){
               if ([[pl.abilities objectAtIndex: choice] intValue] != None){
                 attack = [[pl.abilities objectAtIndex: choice] intValue];
+                if (player_manaCosts[attack] > pl.mana){
+                  attack = -1;
+                  printf("You don't have the mana for that!\n");
+                }
+
               }
             }
           }
@@ -84,25 +91,29 @@ int main (int argc, const char * argv[]){
           int attacker = rand() % (enemy.speed + pl.speed);
           if(attacker < pl.speed){
             //attack with chosen ability
-            int damage = [pl attackWithAbility:attack];
+            int damage = [pl attackWithAbility:attack atEnemy:enemy];
             printf("\nHit %s for %d!\n", [enemy.name UTF8String], damage);
             [enemy damage:damage];
           }
           else{
             int damage = [enemy attack];
             [pl damage:damage];
-            printf("You were hit for %d!\n", damage, [[enemy name] UTF8String]);
+            printf("You were hit for %d!\n", damage);
           }
           if(pl.health <= 0){
             printf("You are dead.");
             in_battle = 0;
+            exit(0);
           }
           if(enemy.health <= 0){
             int gold = enemy.value + rand() % 5;
             int xp = enemy.value + rand() % 10;
-            pl.mana = pl.max_mana;
-            printf("Defeated %s. Gained %d xp and %d gold.\n", [enemy.name UTF8String], xp, gold);
+            printf("Defeated %s. Gained %d xp and %d gold.\n\n", [enemy.name UTF8String], xp, gold);
+            [pl awardXP: xp];
+            [pl resetStats];
             in_battle = 0;
+            [enemy release]
+            continue;
           }
         }
 
@@ -123,7 +134,6 @@ int main (int argc, const char * argv[]){
           printf("\n\nValid actions:\n");
           printf("\t go north/east/south/west\n");
           printf("\t search (shortcut: s)\n");
-          printf("\t where (shortcut: w)\n");
           printf("\t abilities\n");
           printf("\t status\n");
           printf("Only valid in town:\n");
@@ -133,9 +143,6 @@ int main (int argc, const char * argv[]){
           printf("Only valid in the arena:\n");
           printf("\t challenge\n");
           printf("\t bet\n");
-          printf("Only valid in a battle:\n");
-          printf("\t attack\n");
-          printf("\t ability 1/2/3/4\n\n\n");
         }
         else if (strcmp(nextWord, "go") == 0){
           char * dir = strtok(NULL, delim);
@@ -270,6 +277,9 @@ int main (int argc, const char * argv[]){
             default:
               break;
           }
+        }
+        else if (strcmp(nextWord, "status") == 0){
+          [pl printStatus];
         }
       }
       [player_name release];
