@@ -10,7 +10,7 @@ typedef enum {Town, Arena, Grasslands, Desert, Forest, Mountains} location_codes
 
 const char* Abilities[] = {"None", "Slash", "Herotime", "Haymaker", "Heal", "Fireball", "Lifesteal", "Boom", "ManaGain", "Stab", "Misdirect", "Steal", "Assassinate"};
 typedef enum {None, Slash, Herotime, Haymaker, Heal, Fireball, Lifesteal, Boom, ManaGain, Stab, Misdirect, Steal, Assassinate} ability_codes;
-const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 20, 0, 0, 0, 0, 0};
+const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 13, 0, 0, 0, 0, 0};
 
 @implementation Player
 @synthesize name;
@@ -22,6 +22,13 @@ const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 20, 0, 0, 0, 0, 0};
 @synthesize medals;
 @synthesize max_hp;
 @synthesize health;
+//custum health setter to not allow healing above max hp
+- (void) setHealth: (int) newHP{
+    health += newHP;
+    if(health > max_hp){
+      health = max_hp;
+    }
+}
 @synthesize max_str;
 @synthesize strength;
 @synthesize max_mana;
@@ -31,6 +38,7 @@ const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 20, 0, 0, 0, 0, 0};
 @synthesize max_speed;
 @synthesize speed;
 @synthesize abilities;
+@synthesize gold;
 
 + (instancetype) PlayerWithName: (NSString *) n andClass: (int) cls{
     Player * p = [[Player alloc] initWithName:n andClass: cls];
@@ -43,6 +51,7 @@ const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 20, 0, 0, 0, 0, 0};
     self->xp_cap = 100;
     self->xp = 0;
     self->level = 1;
+    self.gold = 0;
     switch(c){
       case Warrior:
         self->max_str = 6;
@@ -117,8 +126,10 @@ const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 20, 0, 0, 0, 0, 0};
       case Slash:
         damage = self.strength + rand() % 5;
         break;
-      case Herotime:
-        self.strength += rand() % 6 + 5;
+      case Herotime:;
+        int added_str = rand() % 6 + 5;
+        printf("Increased strength by %d.\n", added_str);
+        self.strength += added_str;
         break;
       case Haymaker:
         self.health -= rand() % 6 + 5;
@@ -143,10 +154,12 @@ const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 20, 0, 0, 0, 0, 0};
         damage = self.strength + rand() % 5;
         break;
       case Misdirect:
-        enemy.speed -= rand() % 10 + 5;
+        printf("Lowered %s's speed.\n", [enemy.name UTF8String]);
+        enemy.speed -= rand() % 3 + 1;
         break;
       case Steal:
-        enemy.value *= 2;
+        printf("Increased loot from %s\n", [enemy.name UTF8String]);
+        enemy.value += (int)(enemy.value * 1 / 4);
         self.health -= 10;
         break;
       case Assassinate:
@@ -159,7 +172,7 @@ const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 20, 0, 0, 0, 0, 0};
     }
     //chance of critical hit based on relative speeds
     int speedDifference = self.speed - enemy.speed;
-    if(speedDifference > 0){
+    if(speedDifference > 0 && damage != 0){
       int critChance = 2 * speedDifference;
       int roll = rand() % 100 + 1;
       //don't have above a 50% chance of a crit
@@ -214,9 +227,10 @@ const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 20, 0, 0, 0, 0, 0};
     printf("|HP %d/%d\n",self.health, self.max_hp);
     printf("|MP %d/%d\n", self.mana, self.max_mana);
     printf("|---------\n");
-    printf("|STR:%d/%d\n", self.strength, self.max_str);
-    printf("|INT:%d/%d\n", self.intelligence, self.max_int);
-    printf("|SPD:%d/%d\n", self.speed, self.max_speed);
+    printf("|STR:%d\n", self.strength);
+    printf("|INT:%d\n", self.intelligence);
+    printf("|SPD:%d\n", self.speed);
+    printf("|Gold: %d\n", self.gold);
     printf("--------------\n");
 }
 

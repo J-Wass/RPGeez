@@ -21,6 +21,7 @@
    int intelligence;
    int max_speed;
    int speed;
+   int gold;
    NSMutableArray * abilities;
 }
 @property (readonly) NSString * name;
@@ -40,6 +41,7 @@
 @property int intelligence;
 @property int max_speed;
 @property int speed;
+@property int gold;
 @property (nonatomic, retain) NSMutableArray * abilities;
 
 + (instancetype) PlayerWithName: (NSString *) name andClass: (int) cls;

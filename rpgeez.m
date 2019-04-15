@@ -8,10 +8,10 @@ const char* Player_Classes[] = {"Warrior", "Mage", "Thief", "Paladin", "Wizard",
 const char* Player_Locations[] = {"Town", "Arena", "Grasslands", "Desert", "Forest", "Mountains"};
 const char* Player_Abilities[] = {"None", "Slash", "Herotime", "Haymaker", "Heal", "Fireball", "Lifesteal", "Boom", "ManaGain", "Stab", "Misdirect", "Steal", "Assassinate"};
 typedef enum {Town, Arena, Grasslands, Desert, Forest, Mountains} location_codes;
-typedef enum {Common_Lynx, Sand_Elemental, Rock_Golem, Wood_Elf, Dark_Elf, Griffin, Phoenix} monster_codes;
+typedef enum {Common_Lynx, Sand_Elemental, Rock_Golem, Wood_Elf, Ent, Griffin, Phoenix} monster_codes;
 typedef enum {None, Slash, Herotime, Haymaker, Heal, Fireball, Lifesteal, Boom, ManaGain, Stab, Misdirect, Steal, Assassinate} ability_codes;
-const int player_manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 20, 0, 0, 0, 0, 0};
-
+const int player_manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 13, 0, 0, 0, 0, 0};
+const int casts[] = {0, 1000, 2, 2, 2, 1000, 4, 6, 2, 1000, 2, 2, 1};
 int main (int argc, const char * argv[]){
       srand(time(NULL)); //setup randomness seed
       NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -46,6 +46,7 @@ int main (int argc, const char * argv[]){
       Enemy * enemy;
       while ([pl health] > 0 && [pl medals] < 10){
         while(in_battle){
+          //gain 1 mana per turn in battle
           if(pl.mana < pl.max_mana){
             pl.mana++;
           }
@@ -54,7 +55,7 @@ int main (int argc, const char * argv[]){
           printf("|Your Stats\t%s's Stats\n",[[enemy name] UTF8String]);
           printf("|---------\t-----------\n");
           printf("|HP %d/%d\tHP %d/%d\n",[pl health],[pl max_hp],[enemy health],[enemy max_hp]);
-          printf("|MP %d/%d  \tMP %d/%d\n", [pl mana],[pl max_mana],[enemy mana],[enemy max_mana]);
+          printf("|MP %d/%d\n", [pl mana],[pl max_mana]);
           printf("|STR:%d  \tSTR:%d \n", [pl strength], [enemy strength]);
           printf("|INT:%d  \tINT:%d \n", [pl intelligence], [enemy intelligence]);
           printf("|SPD:%d  \tSPD:%d \n", [pl speed], [enemy speed]);
@@ -92,7 +93,12 @@ int main (int argc, const char * argv[]){
           if(attacker < pl.speed){
             //attack with chosen ability
             int damage = [pl attackWithAbility:attack atEnemy:enemy];
-            printf("\nHit %s for %d!\n", [enemy.name UTF8String], damage);
+            if(damage == 0){
+              printf("Did no damage to %s...\n", [enemy.name UTF8String]);
+            }
+            else{
+              printf("\nHit %s for %d!\n", [enemy.name UTF8String], damage);
+            }
             [enemy damage:damage];
           }
           else{
@@ -101,7 +107,7 @@ int main (int argc, const char * argv[]){
             printf("You were hit for %d!\n", damage);
           }
           if(pl.health <= 0){
-            printf("You are dead.");
+            printf("You are dead.\n");
             in_battle = 0;
             exit(0);
           }
@@ -112,7 +118,8 @@ int main (int argc, const char * argv[]){
             [pl awardXP: xp];
             [pl resetStats];
             in_battle = 0;
-            [enemy release]
+            pl.gold += gold;
+            [enemy release];
             continue;
           }
         }
@@ -137,8 +144,8 @@ int main (int argc, const char * argv[]){
           printf("\t abilities\n");
           printf("\t status\n");
           printf("Only valid in town:\n");
-          printf("\t sell\n");
-          printf("\t heal\n");
+          printf("\t buy\n");
+          printf("\t inn\n");
           printf("\t arena\n");
           printf("Only valid in the arena:\n");
           printf("\t challenge\n");
@@ -253,26 +260,53 @@ int main (int argc, const char * argv[]){
             case Desert:
               found_monster = rand() % 100;
               if(found_monster > 40){
+                if(found_monster < 60){
+                  enemy = [Enemy EnemyWithType:Rock_Golem];
+                  printf("Rock Golem encountered!\n");
+                }
+                else{
+                  enemy = [Enemy EnemyWithType:Sand_Elemental];
+                  printf("Sand Elemental encountered!\n");
+                }
                 in_battle = 1;
-                enemy = [Enemy EnemyWithType:Common_Lynx];
               }
-              printf("Common Lynx encountered!\n");
+              else{
+                printf("Didn't find much...\n");
+              }
               break;
             case Forest:
               found_monster = rand() % 100;
               if(found_monster > 40){
+                if(found_monster < 60){
+                  enemy = [Enemy EnemyWithType:Ent];
+                  printf("Ent encountered!\n");
+                }
+                else{
+                  enemy = [Enemy EnemyWithType:Wood_Elf];
+                  printf("Wood Elf encountered!\n");
+                }
                 in_battle = 1;
-                enemy = [Enemy EnemyWithType:Common_Lynx];
               }
-              printf("Common Lynx encountered!\n");
+              else{
+                printf("Didn't find much...\n");
+              }
               break;
             case Mountains:
               found_monster = rand() % 100;
               if(found_monster > 40){
-                in_battle = 1;
-                enemy = [Enemy EnemyWithType:Common_Lynx];
+                if(found_monster < 60){
+                  enemy = [Enemy EnemyWithType:Griffin];
+                  printf("Griffin encountered!\n");
+                }
+                else{
+                  enemy = [Enemy EnemyWithType:Phoenix];
+                  printf("Phoenix encountered!\n");
+                }
               }
-              printf("Common Lynx encountered!\n");
+              else{
+                printf("Didn't find much...\n");
+              }
+              in_battle = 1;
               break;
             default:
               break;
@@ -280,6 +314,26 @@ int main (int argc, const char * argv[]){
         }
         else if (strcmp(nextWord, "status") == 0){
           [pl printStatus];
+        }
+        else if (strcmp(nextWord, "inn") == 0){
+          if(pl.location != Town){
+            printf("There's no inn here! Better go back to the nearest town.\n");
+            continue;
+          }
+          printf("The room's mostly held together with stains but its got a warm bed.\nCosts 100 gold.\ntype \"y\" or \"n\"\n> ");
+          if(pl.gold < 100){
+            printf("Sorry, try the streets friend... (not enough gold)\n");
+            continue;
+          }
+          int dumb_new_line_that_i_have_to_get_first;
+          scanf("%d", dumb_new_line_that_i_have_to_get_first);
+          char decision = getchar();
+          if(decision == 'y'){
+            pl.gold -= 100;
+            pl.health = pl.max_hp;
+            printf("\n*Fully Rested*\n\n");
+          }
+          scanf("%d", dumb_new_line_that_i_have_to_get_first);
         }
       }
       [player_name release];
