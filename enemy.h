@@ -12,8 +12,10 @@
    int intelligence;
    int max_speed;
    int speed;
+
    int value;
    int attack_type;
+   int monster_id;
 }
 @property (readonly) NSString * name;
 @property int max_hp;
@@ -26,6 +28,7 @@
 @property int speed;
 @property int value;
 @property int attack_type;
+@property int monster_id;
 
 + (instancetype) EnemyWithType: (int) t;
 - (id) initWithName: (NSString *) n withHealth: (int) _health withStr: (int) _str withIntel: (int) _intel withSpeed: (int) _speed withValue: (int) _val withAttackType: (int) _type;

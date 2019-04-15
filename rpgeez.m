@@ -8,7 +8,7 @@ const char* Player_Classes[] = {"Warrior", "Mage", "Thief", "Paladin", "Wizard",
 const char* Player_Locations[] = {"Town", "Arena", "Grasslands", "Desert", "Forest", "Mountains"};
 const char* Player_Abilities[] = {"None", "Slash", "Herotime", "Haymaker", "Heal", "Fireball", "Lifesteal", "Boom", "ManaGain", "Stab", "Misdirect", "Steal", "Assassinate"};
 typedef enum {Town, Arena, Grasslands, Desert, Forest, Mountains} location_codes;
-typedef enum {Common_Lynx, Sand_Elemental, Rock_Golem, Wood_Elf, Ent, Griffin, Phoenix} monster_codes;
+typedef enum {Common_Lynx, Sand_Elemental, Rock_Golem, Wood_Elf, Ent, Phoenix, Griffin, Great_Griffin, Champion_Aaron, General_Zweihander, Mercenary_Jill, Rosier, Mistake} monster_codes;
 typedef enum {None, Slash, Herotime, Haymaker, Heal, Fireball, Lifesteal, Boom, ManaGain, Stab, Misdirect, Steal, Assassinate} ability_codes;
 const int player_manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 13, 0, 0, 0, 0, 0};
 const int casts[] = {0, 1000, 2, 2, 2, 1000, 4, 6, 2, 1000, 2, 2, 1};
@@ -35,7 +35,7 @@ int main (int argc, const char * argv[]){
       strtok(name, "\n");
       NSString * player_name = [NSString stringWithUTF8String:name];
       Player * pl = [Player PlayerWithName:player_name andClass: class];
-      [pl setLocation:Town];
+      pl.location = Town;
 
       printf("\nWelcome %s the %s to RPGeez.\n", [[pl name] UTF8String], Player_Classes[[pl class]]);
       printf("::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\n\n");
@@ -83,7 +83,6 @@ int main (int argc, const char * argv[]){
                   attack = -1;
                   printf("You don't have the mana for that!\n");
                 }
-
               }
             }
           }
@@ -115,6 +114,13 @@ int main (int argc, const char * argv[]){
             int gold = enemy.value + rand() % 5;
             int xp = enemy.value + rand() % 10;
             printf("Defeated %s. Gained %d xp and %d gold.\n\n", [enemy.name UTF8String], xp, gold);
+            if(enemy.monster_id >= Great_Griffin){
+              pl.medals += 1;
+              printf("Gained a medal!\n");
+              if(pl.medals >=5){
+                printf("\n\nCongratulations! You have beaten RPGeez!!!\nYou can continue fighting at the arena or buying items, but the main game has ended.\n");
+              }
+            }
             [pl awardXP: xp];
             [pl resetStats];
             in_battle = 0;
@@ -334,6 +340,62 @@ int main (int argc, const char * argv[]){
             printf("\n*Fully Rested*\n\n");
           }
           scanf("%d", dumb_new_line_that_i_have_to_get_first);
+        }
+        else if (strcmp(nextWord, "arena") == 0){
+          if(pl.location == Town){
+            pl.location = Arena;
+          }
+          else if (pl.location == Arena){
+            printf("You're already in the arena!\n");
+
+          }
+          else{
+            printf("You must be in the town to travel to the arena!\n");
+          }
+        }
+        else if (strcmp(nextWord, "challenge") == 0){
+          if(pl.location != Arena){
+            printf("You can only challenge at the arena in town!\n");
+          }
+          else{
+            switch(pl.medals){
+              case 0:
+                in_battle = 1;
+                enemy = [Enemy EnemyWithType:Great_Griffin];
+                printf("Great Griffin encountered at the arena!\n");
+                break;
+              case 1:
+                in_battle = 1;
+                enemy = [Enemy EnemyWithType:Champion_Aaron];
+                printf("Champion Aaron encountered at the arena!\n");
+                break;
+              case 2:
+                in_battle = 1;
+                enemy = [Enemy EnemyWithType:General_Zweihander];
+                printf("General Zweihander encountered at the arena!\n");
+                break;
+              case 3:
+                in_battle = 1;
+                enemy = [Enemy EnemyWithType:Mercenary_Jill];
+                printf("Jill the mercenary encountered at the arena!\n");
+                break;
+              case 4:
+                in_battle = 1;
+                enemy = [Enemy EnemyWithType:Rosier];
+                printf("Rosier the risen encountered at the arena!\n");
+                break;
+              default:
+                in_battle = 1;
+                enemy = [Enemy EnemyWithType:Mistake];
+                sprintf(enemy.name, "%s %d", enemy.name, pl.medals);
+                enemy.health *= pl.medals;
+                enemy.strength *= pl.medals;
+                enemy.intelligence *= pl.medals;
+                enemy.speed *= pl.medals;
+                enemy.value *= pl.medals;
+                printf("m̶̟̓ỉ̵̪s̵͈̈t̵̺̋ã̵̳k̸͎͑ḙ̶̿ ̶̼͝è̵̱x̷̻͌ĩ̷̲s̷̰͝t̸̥̽s̵̟͌\n");
+            }
+          }
         }
       }
       [player_name release];
