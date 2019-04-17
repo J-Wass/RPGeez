@@ -11,13 +11,31 @@ typedef enum {Town, Arena, Grasslands, Desert, Forest, Mountains} location_codes
 typedef enum {Common_Lynx, Sand_Elemental, Rock_Golem, Wood_Elf, Ent, Phoenix, Griffin, Great_Griffin, Champion_Aaron, General_Zweihander, Mercenary_Jill, Rosier, Mistake} monster_codes;
 typedef enum {None, Slash, Herotime, Haymaker, Heal, Fireball, Lifesteal, Boom, ManaGain, Stab, Misdirect, Steal, Assassinate} ability_codes;
 const int player_manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 13, 0, 0, 0, 0, 0};
+const int max_casts[] = {0, 1000, 2, 2, 2, 1000, 4, 6, 2, 1000, 2, 2, 1};
 const int casts[] = {0, 1000, 2, 2, 2, 1000, 4, 6, 2, 1000, 2, 2, 1};
+
+const char* Weapon_Adjectives[] = {"Fiery ", "Unnecessary ", "Gluten Free ", "Big ", "Unstoppable ", "Great ", "Heavy ", "Silver "};
+const char* Weapon_Types[] = {"Spear", "Staff", "Sword", "Trident", "Crossbow", "Sling", "Lance", "Flail"};
+const char* Armor_Adjectives[] = {"Rock ", "Obsidian ", "Meteor ", "Dragon ", "Immovable ", "Overachieving ", "Heavy ", "Silver "};
+const char* Armor_Types[] = {"Plate Armor", "Chainmail", "Kite Shield", "Buckler", "Square Shield", "Wraps", "Headband", "Training Weights"};
+
+
 int main (int argc, const char * argv[]){
-      srand(time(NULL)); //setup randomness seed
       NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+      srand(time(NULL)); //setup randomness seed
       //set up initial game variables
       char name[20];
       char class_name[10];
+
+      //setup current store items
+      NSMutableString * current_weapon_name = [NSMutableString stringWithUTF8String:Weapon_Adjectives[rand() % 8]];
+      [current_weapon_name appendString: [NSString stringWithUTF8String:Weapon_Types[rand() % 8]]];
+      int current_weapon_str = rand() % 2 + 2;
+      int current_weapon_int = rand() % 2 + 2;
+
+      NSMutableString * current_armor_name = [NSMutableString stringWithUTF8String:Armor_Adjectives[rand() % 8]];
+      [current_armor_name appendString: [NSString stringWithUTF8String:Armor_Types[rand() % 8]]];
+      int current_armor_defense = rand() % 2 + 2;
 
       //get name and class
       puts("What name will you be known as?");
@@ -37,7 +55,7 @@ int main (int argc, const char * argv[]){
       Player * pl = [Player PlayerWithName:player_name andClass: class];
       pl.location = Town;
 
-      printf("\nWelcome %s the %s to RPGeez.\n", [[pl name] UTF8String], Player_Classes[[pl class]]);
+      printf("\nWelcome %s the %s to RPGeez.\n", [pl.name UTF8String], Player_Classes[pl.class]);
       printf("::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\n\n");
       printf("Type \"help\" for a list of available actions.\n\n");
 
@@ -65,7 +83,7 @@ int main (int argc, const char * argv[]){
           int attack = -1;
           while(attack != [[pl.abilities objectAtIndex: 0] intValue] && attack != [[pl.abilities objectAtIndex: 1] intValue] && attack != [[pl.abilities objectAtIndex: 2] intValue] && attack != [[pl.abilities objectAtIndex: 3] intValue]){
             printf("Valid abilities: \n");
-            int i = 0;
+            int i = 1;
             for(NSNumber * ability in pl.abilities){
               if([ability intValue] != None){
                 printf("\t %s (%d MP) = type \"%d\" to use... \n", Player_Abilities[[ability intValue]], player_manaCosts[[ability intValue]], i);
@@ -75,6 +93,7 @@ int main (int argc, const char * argv[]){
             printf("> ");
             int choice = -1;
             scanf("%d", &choice);
+            choice -= 1;
             getchar(); //grab the trailing newline from stdin... its weird i know
             if (choice >= 0 && choice <= 3){
               if ([[pl.abilities objectAtIndex: choice] intValue] != None){
@@ -101,7 +120,7 @@ int main (int argc, const char * argv[]){
             [enemy damage:damage];
           }
           else{
-            int damage = [enemy attack];
+            int damage = [enemy attackWithDefense: pl.defense];
             [pl damage:damage];
             printf("You were hit for %d!\n", damage);
           }
@@ -114,9 +133,21 @@ int main (int argc, const char * argv[]){
             int gold = enemy.value + rand() % 5;
             int xp = enemy.value + rand() % 10;
             printf("Defeated %s. Gained %d xp and %d gold.\n\n", [enemy.name UTF8String], xp, gold);
+
+            //if player just won at the arena
             if(enemy.monster_id >= Great_Griffin){
               pl.medals += 1;
               printf("Gained a medal!\n");
+
+              //update current store items
+              current_weapon_name = [NSString stringWithUTF8String:Weapon_Adjectives[rand() % 8]];
+              [current_weapon_name appendString: [NSString stringWithUTF8String:Weapon_Types[rand() % 8]]];
+              current_weapon_str = rand() % (pl.medals * 2) + 5 + pl.medals * 3;
+              current_weapon_int = rand() % (pl.medals * 2) + 5 + pl.medals * 3;
+
+              current_armor_name = [NSString stringWithUTF8String:Armor_Adjectives[rand() % 8]];
+              [current_armor_name appendString: [NSString stringWithUTF8String:Armor_Types[rand() % 8]]];
+              current_armor_defense = rand() % (pl.medals * 2) + 5 + pl.medals * 3;
               if(pl.medals >=5){
                 printf("\n\nCongratulations! You have beaten RPGeez!!!\nYou can continue fighting at the arena or buying items, but the main game has ended.\n");
               }
@@ -147,7 +178,7 @@ int main (int argc, const char * argv[]){
           printf("\n\nValid actions:\n");
           printf("\t go north/east/south/west\n");
           printf("\t search (shortcut: s)\n");
-          printf("\t abilities\n");
+          printf("\t equipment\n");
           printf("\t status\n");
           printf("Only valid in town:\n");
           printf("\t buy\n");
@@ -332,14 +363,14 @@ int main (int argc, const char * argv[]){
             continue;
           }
           int dumb_new_line_that_i_have_to_get_first;
-          scanf("%d", dumb_new_line_that_i_have_to_get_first);
+          scanf("%d", &dumb_new_line_that_i_have_to_get_first);
           char decision = getchar();
           if(decision == 'y'){
             pl.gold -= 100;
             pl.health = pl.max_hp;
             printf("\n*Fully Rested*\n\n");
           }
-          scanf("%d", dumb_new_line_that_i_have_to_get_first);
+          scanf("%d", &dumb_new_line_that_i_have_to_get_first);
         }
         else if (strcmp(nextWord, "arena") == 0){
           if(pl.location == Town){
@@ -387,7 +418,6 @@ int main (int argc, const char * argv[]){
               default:
                 in_battle = 1;
                 enemy = [Enemy EnemyWithType:Mistake];
-                sprintf(enemy.name, "%s %d", enemy.name, pl.medals);
                 enemy.health *= pl.medals;
                 enemy.strength *= pl.medals;
                 enemy.intelligence *= pl.medals;
@@ -396,6 +426,53 @@ int main (int argc, const char * argv[]){
                 printf("m̶̟̓ỉ̵̪s̵͈̈t̵̺̋ã̵̳k̸͎͑ḙ̶̿ ̶̼͝è̵̱x̷̻͌ĩ̷̲s̷̰͝t̸̥̽s̵̟͌\n");
             }
           }
+        }
+        else if (strcmp(nextWord, "buy") == 0){
+          if(pl.location != Town){
+            printf("There's no store here! Better go back to the nearest town.\n");
+            continue;
+          }
+          printf("Hit harder or get hit harder? \nType \"w\" for weapons, \"a\" for armor, or anything else to leave.\n> ");
+          int cost = (pl.medals + 1) * 1000;
+          if(pl.gold < cost){
+            printf("Sorry, you'll need more gold... (not enough gold)\n");
+            continue;
+          }
+          int decision = getchar();
+          int newline = getchar();
+          if(decision == 'w'){
+            printf("The %s offers %d strength and %d intelligence. Thoughts?\n", [current_weapon_name UTF8String], current_weapon_str, current_weapon_int);
+            printf("Costs %d gold.\nType \"b\" to buy.\n> ", cost);
+            int buy = getchar();
+            newline = getchar();
+            if(buy == 'b'){
+              printf("Sounds like a deal!\n");
+              pl.gold -= cost;
+              pl.extra_str = current_weapon_str;
+              pl.extra_intel = current_weapon_int;
+              pl.weapon_name = current_weapon_name;
+            }
+            else{
+              printf("Another time then...\n");
+            }
+          }else if(decision == 'a'){
+            printf("\nThe %s offers %d defense. Thoughts?\n", [current_armor_name UTF8String], current_armor_defense);
+            printf("Costs %d gold.\nType \"b\" to buy.\n> ", cost);
+            int buy = getchar();
+            newline = getchar();
+            if(buy == 'b'){
+              printf("Sounds like a deal!\n");
+              pl.gold -= cost;
+              pl.defense = current_armor_defense;
+              pl.armor_name = current_armor_name;
+            }
+            else{
+              printf("Another time then...\n");
+            }
+          }
+        }
+        else if (strcmp(nextWord, "equipment") == 0){
+          [pl printEquipment];
         }
       }
       [player_name release];

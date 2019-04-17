@@ -2,27 +2,35 @@
 #import "enemy.h"
 
 @interface Player : NSObject {
-   NSString * name;
-   int level;
-   int xp_cap;
-   int xp;
-   int class;
-   int location;
-   int medals;
+    NSString * name;
+    int level;
+    int xp_cap;
+    int xp;
+    int class;
+    int location;
+    int medals;
+    int gold;
 
-   //stats
-   int max_hp;
-   int health;
-   int max_str;
-   int strength;
-   int max_mana;
-   int mana;
-   int max_int;
-   int intelligence;
-   int max_speed;
-   int speed;
-   int gold;
-   NSMutableArray * abilities;
+    //stats
+    int max_hp;
+    int health;
+    int max_str;
+    int strength;
+    int max_mana;
+    int mana;
+    int max_int;
+    int intelligence;
+    int max_speed;
+    int speed;
+
+    //items
+    NSString * weapon_name;
+    NSString * armor_name;
+    int defense;
+    int extra_str;
+    int extra_intel;
+
+    NSMutableArray * abilities;
 }
 @property (readonly) NSString * name;
 @property int level;
@@ -42,6 +50,11 @@
 @property int max_speed;
 @property int speed;
 @property int gold;
+@property (assign) NSString * weapon_name;
+@property (assign) NSString * armor_name;
+@property int defense;
+@property int extra_str;
+@property int extra_intel;
 @property (nonatomic, retain) NSMutableArray * abilities;
 
 + (instancetype) PlayerWithName: (NSString *) name andClass: (int) cls;
@@ -52,4 +65,7 @@
 - (void) levelUp;
 - (void) printStatus;
 - (void) resetStats;
+- (void) equipWeapon: (NSString *) weaponname withStr: (int) str withIntel: (int) intel;
+- (void) equipArmor: (NSString *) armorname withDefense: (int) def;
+- (void) printEquipment;
 @end

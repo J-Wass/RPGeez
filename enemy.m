@@ -17,7 +17,7 @@ const int attack_types[] = {0, 1, 0, 1, 0, 2, 2, 2, 1, 1, 1, 2, 2};
 @synthesize speed;
 //custum health setter to not allow speed to drop too low
 - (void) setSpeed: (int) newSpeed{
-    speed += newSpeed;
+    speed = newSpeed;
     if(speed < 1){
       speed = 1;
     }
@@ -184,20 +184,21 @@ const int attack_types[] = {0, 1, 0, 1, 0, 2, 2, 2, 1, 1, 1, 2, 2};
     self->health -= points;
 }
 
-- (int) attack{
+- (int) attackWithDefense: (int) defense{
     self = [super init];
+    defense /= 2;
     switch(self->attack_type){
       case 0:
-        return rand() % 5 + self->strength;
+        return rand() % 5 + self->strength - defense;
         break;
       case 1:
-        return rand() % 5 + self->intelligence;
+        return rand() % 5 + self->intelligence - defense;
         break;
       case 2:
-        return rand() % 5 + self->strength + self->intelligence;
+        return rand() % 5 + self->strength + self->intelligence - defense;
         break;
       default:
-        return rand() % 5 + self->strength;
+        return rand() % 5 + self->strength - defense;
         break;
     }
   }

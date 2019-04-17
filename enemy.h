@@ -30,10 +30,11 @@
 @property int attack_type;
 @property int monster_id;
 
+
 + (instancetype) EnemyWithType: (int) t;
 - (id) initWithName: (NSString *) n withHealth: (int) _health withStr: (int) _str withIntel: (int) _intel withSpeed: (int) _speed withValue: (int) _val withAttackType: (int) _type;
 - (void) damage: (int) points;
-- (int) attack;
+- (int) attackWithDefense: (int) defense;
 
 
 @end

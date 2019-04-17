@@ -22,7 +22,7 @@ const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 13, 0, 0, 0, 0, 0};
 @synthesize medals;
 @synthesize max_hp;
 @synthesize health;
-//custum health setter to not allow healing above max hp
+//custom health setter to not allow healing above max hp
 - (void) setHealth: (int) newHP{
     health += newHP;
     if(health > max_hp){
@@ -39,6 +39,11 @@ const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 13, 0, 0, 0, 0, 0};
 @synthesize speed;
 @synthesize abilities;
 @synthesize gold;
+@synthesize weapon_name;
+@synthesize armor_name;
+@synthesize defense;
+@synthesize extra_str;
+@synthesize extra_intel;
 
 + (instancetype) PlayerWithName: (NSString *) n andClass: (int) cls{
     Player * p = [[Player alloc] initWithName:n andClass: cls];
@@ -51,7 +56,12 @@ const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 13, 0, 0, 0, 0, 0};
     self->xp_cap = 100;
     self->xp = 0;
     self->level = 1;
-    self.gold = 0;
+    self.gold = 1000;
+    self.defense = 0;
+    self.extra_str = 0;
+    self.extra_intel = 0;
+    self.weapon_name = @"Nothing";
+    self.armor_name = @"Nothing";
     switch(c){
       case Warrior:
         self->max_str = 6;
@@ -124,7 +134,7 @@ const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 13, 0, 0, 0, 0, 0};
     self.mana -= manaCosts[ability];
     switch (ability){
       case Slash:
-        damage = self.strength + rand() % 5;
+        damage = self.strength + self.extra_str + rand() % 5;
         break;
       case Herotime:;
         int added_str = rand() % 6 + 5;
@@ -133,29 +143,29 @@ const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 13, 0, 0, 0, 0, 0};
         break;
       case Haymaker:
         self.health -= rand() % 6 + 5;
-        damage = self.strength * 2 + rand() % 5;
+        damage = self.strength + self.extra_str * 2 + rand() % 5;
       case Heal:
         self.health += rand() % 20 + 5;
       case Fireball:
-        damage = self.intelligence + rand() % 5;
+        damage = self.intelligence + extra_intel + rand() % 5;
         break;
       case Lifesteal:;
-        int steal = self.intelligence + rand() % 5;
+        int steal = self.intelligence + extra_intel + rand() % 5;
         self.health += steal;
         damage = steal;
         break;
       case Boom:
-        damage = self.intelligence + rand() % 50;
+        damage = self.intelligence + extra_intel + rand() % 50;
         break;
       case ManaGain:
         self.mana += rand() % 10 + 10;
         break;
       case Stab:
-        damage = self.strength + rand() % 5;
+        damage = self.strength + self.extra_str + rand() % 5;
         break;
       case Misdirect:
         printf("Lowered %s's speed.\n", [enemy.name UTF8String]);
-        enemy.speed -= rand() % 3 + 1;
+        enemy.speed -= (rand() % 3 + 1);
         break;
       case Steal:
         printf("Increased loot from %s\n", [enemy.name UTF8String]);
@@ -164,7 +174,7 @@ const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 13, 0, 0, 0, 0, 0};
         break;
       case Assassinate:
         self.speed /= 2;
-        damage = self.speed + self.strength + rand() % 50;
+        damage = self.speed + self.strength + self.extra_str + rand() % 50;
         break;
       default:
         return 0;
@@ -210,8 +220,6 @@ const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 13, 0, 0, 0, 0, 0};
       printf("Max Speed: %d -> %d\n", speed1, speed2);
     }
 }
-
-//resets alls stats to their max values (does not heal!)
 - (void) resetStats{
     self = [super init];
     self.strength = self.max_str;
@@ -219,7 +227,6 @@ const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 13, 0, 0, 0, 0, 0};
     self.intelligence = self.max_int;
     self.mana = self.max_mana;
 }
-
 - (void) printStatus{
     self = [super init];
     printf("--------------\n");
@@ -233,7 +240,13 @@ const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 13, 0, 0, 0, 0, 0};
     printf("|Gold: %d\n", self.gold);
     printf("--------------\n");
 }
-
+- (void) printEquipment{
+    self = [super init];
+    printf("---------------------------------------------\n");
+    printf("|Weapon: %s \t(+%d strength, +%d intelligence)\n",[self.weapon_name UTF8String], self.extra_str, self.extra_intel);
+    printf("|Armor: %s \t(+%d defense)\n", [self.armor_name UTF8String], self.defense);
+    printf("---------------------------------------------\n");
+}
 - (void) levelUp{
     self = [super init];
     if(self.xp >= self.xp_cap){
@@ -327,4 +340,15 @@ const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 13, 0, 0, 0, 0, 0};
           }
         }
     }
+- (void) equipWeapon: (NSString *) weaponname withStr: (int) str withIntel: (int) intel{
+  self = [super init];
+  self.weapon_name = weaponname;
+  self.extra_str = str;
+  self.extra_intel = intel;
+}
+- (void) equipArmor: (NSString *) armorname withDefense: (int) def{
+  self = [super init];
+  self.armor_name = armorname;
+  self.defense = def;
+}
 @end
