@@ -22,13 +22,6 @@ const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 13, 0, 0, 0, 0, 0};
 @synthesize medals;
 @synthesize max_hp;
 @synthesize health;
-//custom health setter to not allow healing above max hp
-- (void) setHealth: (int) newHP{
-    health += newHP;
-    if(health > max_hp){
-      health = max_hp;
-    }
-}
 @synthesize max_str;
 @synthesize strength;
 @synthesize max_mana;
@@ -56,7 +49,7 @@ const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 13, 0, 0, 0, 0, 0};
     self->xp_cap = 100;
     self->xp = 0;
     self->level = 1;
-    self.gold = 1000;
+    self.gold = 0;
     self.defense = 0;
     self.extra_str = 0;
     self.extra_intel = 0;
@@ -168,8 +161,8 @@ const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 13, 0, 0, 0, 0, 0};
         enemy.speed -= (rand() % 3 + 1);
         break;
       case Steal:
-        printf("Increased loot from %s\n", [enemy.name UTF8String]);
-        enemy.value += (int)(enemy.value * 1 / 4);
+        printf("Increased loot from %s (took damage in the process).\n", [enemy.name UTF8String]);
+        enemy.value += (int)(enemy.value / 4);
         self.health -= 10;
         break;
       case Assassinate:
@@ -251,7 +244,7 @@ const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 13, 0, 0, 0, 0, 0};
     self = [super init];
     if(self.xp >= self.xp_cap){
         self.xp = self.xp % self.xp_cap;
-        self.xp_cap *= 2;
+        self.xp_cap += (self.xp_cap / 4);
         self.level += 1;
         if(self.level == 10){
           switch(self.class){

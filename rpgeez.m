@@ -12,7 +12,7 @@ typedef enum {Common_Lynx, Sand_Elemental, Rock_Golem, Wood_Elf, Ent, Phoenix, G
 typedef enum {None, Slash, Herotime, Haymaker, Heal, Fireball, Lifesteal, Boom, ManaGain, Stab, Misdirect, Steal, Assassinate} ability_codes;
 const int player_manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 13, 0, 0, 0, 0, 0};
 const int max_casts[] = {0, 1000, 2, 2, 2, 1000, 4, 6, 2, 1000, 2, 2, 1};
-const int casts[] = {0, 1000, 2, 2, 2, 1000, 4, 6, 2, 1000, 2, 2, 1};
+const int casts[] = {0, 1000, 2, 2, 2, 1000, 3, 4, 2, 1000, 2, 2, 1};
 
 const char* Weapon_Adjectives[] = {"Fiery ", "Unnecessary ", "Gluten Free ", "Big ", "Unstoppable ", "Great ", "Heavy ", "Silver "};
 const char* Weapon_Types[] = {"Spear", "Staff", "Sword", "Trident", "Crossbow", "Sling", "Lance", "Flail"};
@@ -133,7 +133,9 @@ int main (int argc, const char * argv[]){
             int gold = enemy.value + rand() % 5;
             int xp = enemy.value + rand() % 10;
             printf("Defeated %s. Gained %d xp and %d gold.\n\n", [enemy.name UTF8String], xp, gold);
-
+            if(pl.health > pl.max_hp){
+              pl.health = pl.max_hp;
+            }
             //if player just won at the arena
             if(enemy.monster_id >= Great_Griffin){
               pl.medals += 1;
@@ -370,7 +372,6 @@ int main (int argc, const char * argv[]){
             pl.health = pl.max_hp;
             printf("\n*Fully Rested*\n\n");
           }
-          scanf("%d", &dumb_new_line_that_i_have_to_get_first);
         }
         else if (strcmp(nextWord, "arena") == 0){
           if(pl.location == Town){

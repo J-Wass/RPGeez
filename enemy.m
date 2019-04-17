@@ -38,7 +38,7 @@ const int attack_types[] = {0, 1, 0, 1, 0, 2, 2, 2, 1, 1, 1, 2, 2};
   switch(t){
     case Common_Lynx:
       health = rand() % 10 + 10;
-      str = rand() % 2 + 1;
+      str = rand() % 2 + 2;
       intelligence = 1;
       speed = rand() % 2 + 1;
       n = @"Common Lynx";
@@ -46,37 +46,37 @@ const int attack_types[] = {0, 1, 0, 1, 0, 2, 2, 2, 1, 1, 1, 2, 2};
       type = attack_types[t];
       break;
     case Sand_Elemental:
-      health = rand() % 10 + 10;
+      health = rand() % 10 + 30;
       str = 1;
-      intelligence = 2;
-      speed = rand() % 3 + 2;
+      intelligence = 7;
+      speed = rand() % 3 + 4;
       n = @"Sand Elemental";
-      value = 200;
+      value = 300;
       type = attack_types[t];
       break;
     case Rock_Golem:
-      health = rand() % 10 + 30;
-      str = 3;
+      health = rand() % 10 + 50;
+      str = 10;
       intelligence = 1;
-      speed = rand() % 2 + 2;
+      speed = rand() % 2 + 3;
       n = @"Rock Golem";
       value = 250;
       type = attack_types[t];
       break;
     case Wood_Elf:
-      health = rand() % 10 + 25;
+      health = rand() % 10 + 40;
       str = 1;
-      intelligence = 8;
-      speed = rand() % 3 + 5;
+      intelligence = 15;
+      speed = rand() % 3 + 8;
       n = @"Wood Elf";
       value = 350;
       type = attack_types[t];
       break;
     case Ent:
-      health = rand() % 10 + 50;
-      str = 15;
+      health = rand() % 10 + 75;
+      str = 20;
       intelligence = 1;
-      speed = rand() % 3 + 4;
+      speed = rand() % 3 + 6;
       n = @"Ent";
       value = 500;
       type = attack_types[t];
@@ -99,15 +99,15 @@ const int attack_types[] = {0, 1, 0, 1, 0, 2, 2, 2, 1, 1, 1, 2, 2};
       value = 1200;
       type = attack_types[t];
       break;
-      case Great_Griffin:
-        health = rand() % 10 + 190;
-        str = 30;
-        intelligence = 15;
-        speed = rand() % 3 + 20;
-        n = @"Great Griffin";
-        value = 1200;
-        type = attack_types[t];
-        break;
+    case Great_Griffin:
+      health = rand() % 10 + 190;
+      str = 30;
+      intelligence = 15;
+      speed = rand() % 3 + 20;
+      n = @"Great Griffin";
+      value = 1200;
+      type = attack_types[t];
+      break;
     case Champion_Aaron:
        health = rand() % 10 + 200;
        str = 50;
