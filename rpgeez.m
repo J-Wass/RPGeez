@@ -12,7 +12,7 @@ typedef enum {Common_Lynx, Sand_Elemental, Rock_Golem, Wood_Elf, Ent, Phoenix, G
 typedef enum {None, Slash, Herotime, Haymaker, Heal, Fireball, Lifesteal, Boom, ManaGain, Stab, Misdirect, Steal, Assassinate} ability_codes;
 const int player_manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 13, 0, 0, 0, 0, 0};
 const int max_casts[] = {0, 1000, 2, 2, 2, 1000, 4, 6, 2, 1000, 2, 2, 1};
-const int casts[] = {0, 1000, 2, 2, 2, 1000, 3, 4, 2, 1000, 2, 2, 1};
+int casts[] = {0, 1000, 2, 2, 2, 1000, 3, 4, 2, 1000, 2, 2, 1};
 
 const char* Weapon_Adjectives[] = {"Fiery ", "Unnecessary ", "Gluten Free ", "Big ", "Unstoppable ", "Great ", "Heavy ", "Silver "};
 const char* Weapon_Types[] = {"Spear", "Staff", "Sword", "Trident", "Crossbow", "Sling", "Lance", "Flail"};
@@ -86,7 +86,7 @@ int main (int argc, const char * argv[]){
             int i = 1;
             for(NSNumber * ability in pl.abilities){
               if([ability intValue] != None){
-                printf("\t %s (%d MP) = type \"%d\" to use... \n", Player_Abilities[[ability intValue]], player_manaCosts[[ability intValue]], i);
+                printf("\t %s (costs %d MP, %d casts left) = type \"%d\" to use... \n", Player_Abilities[[ability intValue]], player_manaCosts[[ability intValue]], casts[[ability intValue]], i);
               }
               i++;
             }
@@ -98,6 +98,10 @@ int main (int argc, const char * argv[]){
             if (choice >= 0 && choice <= 3){
               if ([[pl.abilities objectAtIndex: choice] intValue] != None){
                 attack = [[pl.abilities objectAtIndex: choice] intValue];
+                if(casts[attack] <= 0){
+                  attack = -1;
+                  printf("You are out of casts for that move!\n");
+                }
                 if (player_manaCosts[attack] > pl.mana){
                   attack = -1;
                   printf("You don't have the mana for that!\n");
@@ -117,6 +121,8 @@ int main (int argc, const char * argv[]){
             else{
               printf("\nHit %s for %d!\n", [enemy.name UTF8String], damage);
             }
+            //use up a cast for the ability
+            casts[attack]--;
             [enemy damage:damage];
           }
           else{
@@ -133,6 +139,11 @@ int main (int argc, const char * argv[]){
             int gold = enemy.value + rand() % 5;
             int xp = enemy.value + rand() % 10;
             printf("Defeated %s. Gained %d xp and %d gold.\n\n", [enemy.name UTF8String], xp, gold);
+            //reset health and casts
+            int i = 0;
+            for(; i < sizeof(casts)/sizeof(casts[0]); i++){
+              casts[i] = max_casts[i];
+            }
             if(pl.health > pl.max_hp){
               pl.health = pl.max_hp;
             }
