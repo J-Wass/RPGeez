@@ -68,4 +68,5 @@
 - (void) equipWeapon: (NSString *) weaponname withStr: (int) str withIntel: (int) intel;
 - (void) equipArmor: (NSString *) armorname withDefense: (int) def;
 - (void) printEquipment;
+- (void) printEquipment;
 @end

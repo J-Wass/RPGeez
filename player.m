@@ -11,6 +11,22 @@ typedef enum {Town, Arena, Grasslands, Desert, Forest, Mountains} location_codes
 const char* Abilities[] = {"None", "Slash", "Herotime", "Haymaker", "Heal", "Fireball", "Lifesteal", "Boom", "ManaGain", "Stab", "Misdirect", "Steal", "Assassinate"};
 typedef enum {None, Slash, Herotime, Haymaker, Heal, Fireball, Lifesteal, Boom, ManaGain, Stab, Misdirect, Steal, Assassinate} ability_codes;
 const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 13, 0, 0, 0, 0, 0};
+int total_casts[] = {0, 1000, 2, 2, 2, 1000, 3, 4, 2, 1000, 2, 2, 1};
+const char* ability_description[] = {
+  "#<('_'<)",
+  "Basic melee attack, damage is in range (strength, strength+5)",
+  "Increases strength by range (5,10) but deals no damage",
+  "Massive attack that damages the user by range (5,10) and damages the opponent by range (strength, strength+50)",
+  "Heals the user by range (strength+intelligence, strength+intelligence+10)",
+  "Basic magic attack, damage is in range (intelligence, intelligence+5)",
+  "Damages opponent by range (intelligence, intelligence+5), and heals the user by half",
+  "Massive magic attack that causes range (intelligence, intelligence+50) damage",
+  "Gain mana in the range (10,30)",
+  "Basic melee sttack, damage is in range (strength, strength+5)",
+  "Lowers opponent's speed by range (1,3)",
+  "Damages the user by 10 and increases opponent's xp and gold reward by 25%",
+  "A final death blow. Halves the user's speed upon successful hit. Damages opponent in range (strength+speed, strength+speed+50)"
+};
 
 @implementation Player
 @synthesize name;
@@ -127,7 +143,7 @@ const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 13, 0, 0, 0, 0, 0};
     self.mana -= manaCosts[ability];
     switch (ability){
       case Slash:
-        damage = self.strength + self.extra_str + rand() % 5;
+        damage = self.strength + self.extra_str + rand() % 6;
         break;
       case Herotime:;
         int added_str = rand() % 6 + 5;
@@ -136,25 +152,25 @@ const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 13, 0, 0, 0, 0, 0};
         break;
       case Haymaker:
         self.health -= rand() % 6 + 5;
-        damage = self.strength + self.extra_str * 2 + rand() % 5;
+        damage = self.strength + self.extra_str + rand() % 51;
       case Heal:
-        self.health += rand() % 20 + 5;
+        self.health += self.intelligence + self.strength + self.extra_str + self.extra_intel + rand() % 11;
       case Fireball:
-        damage = self.intelligence + extra_intel + rand() % 5;
+        damage = self.intelligence + self.extra_intel + rand() % 6;
         break;
       case Lifesteal:;
-        int steal = self.intelligence + extra_intel + rand() % 5;
+        int steal = self.intelligence + self.extra_intel + rand() % 6;
         self.health += steal;
         damage = steal;
         break;
       case Boom:
-        damage = self.intelligence + extra_intel + rand() % 50;
+        damage = self.intelligence + self.extra_intel + rand() % 51;
         break;
       case ManaGain:
-        self.mana += rand() % 10 + 10;
+        self.mana += rand() % 21 + 10;
         break;
       case Stab:
-        damage = self.strength + self.extra_str + rand() % 5;
+        damage = self.strength + self.extra_str + rand() % 6;
         break;
       case Misdirect:
         printf("Lowered %s's speed.\n", [enemy.name UTF8String]);
@@ -167,7 +183,7 @@ const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 13, 0, 0, 0, 0, 0};
         break;
       case Assassinate:
         self.speed /= 2;
-        damage = self.speed + self.strength + self.extra_str + rand() % 50;
+        damage = self.speed + self.strength + self.extra_str + rand() % 51;
         break;
       default:
         return 0;
@@ -239,6 +255,16 @@ const int manaCosts[] = {0, 0, 0, 0, 5, 0, 5, 13, 0, 0, 0, 0, 0};
     printf("|Weapon: %s \t(+%d strength, +%d intelligence)\n",[self.weapon_name UTF8String], self.extra_str, self.extra_intel);
     printf("|Armor: %s \t(+%d defense)\n", [self.armor_name UTF8String], self.defense);
     printf("---------------------------------------------\n");
+}
+- (void) printAbilities{
+  self = [super init];
+  int i = 1;
+  for(NSNumber * ability in self.abilities){
+    if([ability intValue] != None){
+      printf("%s (costs %d MP, %d casts) - \n\t%s\n", Abilities[[ability intValue]], manaCosts[[ability intValue]], total_casts[[ability intValue]], ability_description[[ability intValue]]);
+    }
+    i++;
+  }
 }
 - (void) levelUp{
     self = [super init];

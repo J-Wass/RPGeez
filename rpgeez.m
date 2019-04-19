@@ -486,6 +486,9 @@ int main (int argc, const char * argv[]){
         else if (strcmp(nextWord, "equipment") == 0){
           [pl printEquipment];
         }
+        else if (strcmp(nextWord, "abilities") == 0){
+          [pl printAbilities];
+        }
       }
       [player_name release];
       [pl release];
