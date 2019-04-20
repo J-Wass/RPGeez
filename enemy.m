@@ -163,7 +163,15 @@ const int attack_types[] = {0, 1, 0, 1, 0, 2, 2, 2, 1, 1, 1, 2, 2};
       type = attack_types[Common_Lynx];
       break;
   }
-  Enemy * e = [[Enemy alloc] initWithName: n withHealth: health withStr: str withIntel: intelligence withSpeed: speed withValue: value withAttackType: type];
+  Enemy * e = [[Enemy alloc]
+    initWithName: n
+    withHealth: health
+    withStr: str
+    withIntel: intelligence
+    withSpeed: speed
+    withValue: value
+    withAttackType: type
+  ];
   e.monster_id = t;
   return e;
 }
