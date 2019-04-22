@@ -32,7 +32,7 @@
 
     NSMutableArray * abilities;
 }
-@property (readonly) NSString * name;
+@property (assign) NSString * name;
 @property int level;
 @property int xp_cap;
 @property int xp;
@@ -69,4 +69,5 @@
 - (void) equipArmor: (NSString *) armorname withDefense: (int) def;
 - (void) printEquipment;
 - (void) printEquipment;
+- (void) printAbilities;
 @end

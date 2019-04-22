@@ -3,6 +3,9 @@
 #import "enemy.h"
 #include <time.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 const char* Player_Classes[] = {"Warrior", "Mage", "Thief", "Paladin", "Wizard", "Assassin"};
 const char* Player_Locations[] = {"Town", "Arena", "Grasslands", "Desert", "Forest", "Mountains"};
@@ -19,6 +22,11 @@ const char* Weapon_Types[] = {"Spear", "Staff", "Sword", "Trident", "Crossbow", 
 const char* Armor_Adjectives[] = {"Rock ", "Obsidian ", "Meteor ", "Dragon ", "Immovable ", "Overachieving ", "Heavy ", "Silver "};
 const char* Armor_Types[] = {"Plate Armor", "Chainmail", "Kite Shield", "Buckler", "Square Shield", "Wraps", "Headband", "Training Weights"};
 
+int file_exist (char *filename)
+{
+  struct stat   buffer;
+  return (stat (filename, &buffer) == 0);
+}
 
 int main (int argc, const char * argv[]){
       NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -193,6 +201,8 @@ int main (int argc, const char * argv[]){
           printf("\t search (shortcut: s)\n");
           printf("\t equipment\n");
           printf("\t status\n");
+          printf("\t save\n");
+          printf("\t load [player name]\n");
           printf("Only valid in town:\n");
           printf("\t buy\n");
           printf("\t inn\n");
@@ -488,6 +498,172 @@ int main (int argc, const char * argv[]){
         }
         else if (strcmp(nextWord, "abilities") == 0){
           [pl printAbilities];
+        }
+        else if (strcmp(nextWord, "save") == 0){
+          char filename[1000] = { };
+          strcat(filename, "saves/");
+          strcat(filename, [pl.name UTF8String]);
+          FILE * fp = fopen(filename,"w+");
+          fprintf(fp, "%s\n", [pl.name UTF8String]);
+          fprintf(fp, "%d\n", pl.level);
+          fprintf(fp, "%d\n", pl.xp_cap);
+          fprintf(fp, "%d\n", pl.xp);
+          fprintf(fp, "%d\n", pl.class);
+          fprintf(fp, "%d\n", pl.location);
+          fprintf(fp, "%d\n", pl.medals);
+          fprintf(fp, "%d\n", pl.max_hp);
+          fprintf(fp, "%d\n", pl.health);
+          fprintf(fp, "%d\n", pl.max_str);
+          fprintf(fp, "%d\n", pl.strength);
+          fprintf(fp, "%d\n", pl.max_mana);
+          fprintf(fp, "%d\n", pl.mana);
+          fprintf(fp, "%d\n", pl.max_int);
+          fprintf(fp, "%d\n", pl.intelligence);
+          fprintf(fp, "%d\n", pl.max_speed);
+          fprintf(fp, "%d\n", pl.speed);
+          fprintf(fp, "%d\n", pl.gold);
+          fprintf(fp, "%s\n", [pl.weapon_name UTF8String]);
+          fprintf(fp, "%s\n", [pl.armor_name UTF8String]);
+          fprintf(fp, "%d\n", pl.defense);
+          fprintf(fp, "%d\n", pl.extra_str);
+          fprintf(fp, "%d\n", pl.extra_intel);
+          fprintf(fp, "%d\n", [[pl.abilities objectAtIndex: 0] intValue]);
+          fprintf(fp, "%d\n", [[pl.abilities objectAtIndex: 1] intValue]);
+          fprintf(fp, "%d\n", [[pl.abilities objectAtIndex: 2] intValue]);
+          fprintf(fp, "%d\n", [[pl.abilities objectAtIndex: 3] intValue]);
+          fclose(fp);
+          printf("Save file written.\n");
+        }
+        else if (strcmp(nextWord, "load") == 0){
+          char * dir = strtok(NULL, delim);
+          char * file = strtok(dir, "\n"); //remove trailing newline from input
+          char path[1000] = { };
+          strcat(path, "saves/");
+          strcat(path, file);
+          if(file_exist(path)){
+            FILE * fp = fopen(path,"r");
+            char line [128];
+            int i = 0;
+            while(fgets(line, sizeof(line), fp) != NULL){
+               switch(i){
+                 case 0:{
+                   pl.name = [NSString stringWithUTF8String:line];
+                   break;
+                 }
+                 case 1:{
+                   pl.level = atoi(line);
+                   break;
+                 }
+                 case 2:{
+                   pl.xp_cap = atoi(line);
+                   break;
+                 }
+                 case 3:{
+                   pl.xp = atoi(line);
+                   break;
+                 }
+                 case 4:{
+                   pl.class = atoi(line);
+                   break;
+                 }
+                 case 5:{
+                   pl.location = atoi(line);
+                   break;
+                 }
+                 case 6:{
+                   pl.medals = atoi(line);
+                   break;
+                 }
+                 case 7:{
+                   pl.max_hp = atoi(line);
+                   break;
+                 }
+                 case 8:{
+                   pl.health = atoi(line);
+                   break;
+                 }
+                 case 10:{
+                   pl.max_str = atoi(line);
+                   break;
+                 }
+                 case 11:{
+                   pl.strength = atoi(line);
+                   break;
+                 }
+                 case 12:{
+                   pl.max_mana = atoi(line);
+                   break;
+                 }
+                 case 13:{
+                   pl.mana = atoi(line);
+                   break;
+                 }
+                 case 14:{
+                   pl.max_int = atoi(line);
+                   break;
+                 }
+                 case 15:{
+                   pl.intelligence = atoi(line);
+                   break;
+                 }
+                 case 16:{
+                   pl.max_speed = atoi(line);
+                   break;
+                 }
+                 case 17:{
+                   pl.speed = atoi(line);
+                   break;
+                 }
+                 case 18:{
+                   pl.gold = atoi(line);
+                   break;
+                 }
+                 case 19:{
+                   pl.weapon_name = [NSString stringWithUTF8String:line];
+                   break;
+                 }
+                 case 20:{
+                   pl.armor_name = [NSString stringWithUTF8String:line];
+                   break;
+                 }
+                 case 21:{
+                   pl.defense = atoi(line);
+                   break;
+                 }
+                 case 22:{
+                   pl.extra_str = atoi(line);
+                   break;
+                 }
+                 case 23:{
+                   pl.extra_intel = atoi(line);
+                   break;
+                 }
+                 case 24:{
+                   [pl.abilities replaceObjectAtIndex: 0 withObject: [NSNumber numberWithInteger:atoi(line)]];
+                   break;
+                 }
+                 case 25:{
+                   [pl.abilities replaceObjectAtIndex: 1 withObject: [NSNumber numberWithInteger:atoi(line)]];
+                   break;
+                 }
+                 case 26:{
+                   [pl.abilities replaceObjectAtIndex: 2 withObject: [NSNumber numberWithInteger:atoi(line)]];
+                   break;
+                 }
+                 case 27:{
+                   [pl.abilities replaceObjectAtIndex: 3 withObject: [NSNumber numberWithInteger:atoi(line)]];
+                   break;
+                 }
+                 default:{
+                   break;
+                 }
+               }
+               i++;
+            }
+          }
+          else{
+            printf("Can't find the save file %s\nCheck your spelling!\n", path);
+          }
         }
       }
       [player_name release];
