@@ -239,13 +239,14 @@ const char* ability_description[] = {
 - (void) printStatus{
     self = [super init];
     printf("--------------\n");
-    printf("|%s - Level %d (XP %d/%d)\n", Classes[self.class], self.level, self.xp, self.xp_cap);
+    printf("|%s\n",[self.name UTF8String]);
+    printf("|%s Level %d (XP %d/%d)\n", Classes[self.class], self.level, self.xp, self.xp_cap);
     printf("|HP %d/%d\n",self.health, self.max_hp);
     printf("|MP %d/%d\n", self.mana, self.max_mana);
     printf("|---------\n");
-    printf("|STR:%d\n", self.strength);
-    printf("|INT:%d\n", self.intelligence);
-    printf("|SPD:%d\n", self.speed);
+    printf("|STRENGTH: %d\n", self.strength);
+    printf("|INTELLIGENCE: %d\n", self.intelligence);
+    printf("|SPEED: %d\n", self.speed);
     printf("|Gold: %d\n", self.gold);
     printf("--------------\n");
 }

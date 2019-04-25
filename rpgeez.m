@@ -6,6 +6,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <dirent.h>
+
+//ignore mass warnings for unused scanf and fgets calls
+#pragma GCC diagnostic ignored "-Wunused-result"
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 
 const char* Player_Classes[] = {"Warrior", "Mage", "Thief", "Paladin", "Wizard", "Assassin"};
 const char* Player_Locations[] = {"Town", "Arena", "Grasslands", "Desert", "Forest", "Mountains"};
@@ -22,10 +27,154 @@ const char* Weapon_Types[] = {"Spear", "Staff", "Sword", "Trident", "Crossbow", 
 const char* Armor_Adjectives[] = {"Rock ", "Obsidian ", "Meteor ", "Dragon ", "Immovable ", "Overachieving ", "Heavy ", "Silver "};
 const char* Armor_Types[] = {"Plate Armor", "Chainmail", "Kite Shield", "Buckler", "Square Shield", "Wraps", "Headband", "Training Weights"};
 
-int file_exist (char *filename)
-{
-  struct stat   buffer;
+int file_exist (char *filename){
+  struct stat buffer;
   return (stat (filename, &buffer) == 0);
+}
+
+int load(Player * pl, char path[]){
+  FILE * fp = fopen(path,"r");
+  char line [128];
+  int i = 0;
+  while(fgets(line, sizeof(line), fp) != NULL){
+     switch(i){
+       case 0:{
+         //checking for newline at end, remove if found
+         char lastLetter = line[strlen(line) - 1];
+         if(lastLetter == 10){
+           line[strlen(line) - 1] = 0;
+         }
+         pl.name = [NSString stringWithUTF8String:line];
+         break;
+       }
+       case 1:{
+         pl.level = atoi(line);
+         break;
+       }
+       case 2:{
+         pl.xp_cap = atoi(line);
+         break;
+       }
+       case 3:{
+         pl.xp = atoi(line);
+         break;
+       }
+       case 4:{
+         pl.class = atoi(line);
+         break;
+       }
+       case 5:{
+         pl.location = atoi(line);
+         break;
+       }
+       case 6:{
+         pl.medals = atoi(line);
+         break;
+       }
+       case 7:{
+         pl.max_hp = atoi(line);
+         break;
+       }
+       case 8:{
+         pl.health = atoi(line);
+         break;
+       }
+       case 9:{
+         pl.max_str = atoi(line);
+         break;
+       }
+       case 10:{
+         pl.strength = atoi(line);
+         break;
+       }
+       case 11:{
+         pl.max_mana = atoi(line);
+         break;
+       }
+       case 12:{
+         pl.mana = atoi(line);
+         break;
+       }
+       case 13:{
+         pl.max_int = atoi(line);
+         break;
+       }
+       case 14:{
+         pl.intelligence = atoi(line);
+         break;
+       }
+       case 15:{
+         pl.max_speed = atoi(line);
+         break;
+       }
+       case 16:{
+         pl.speed = atoi(line);
+         break;
+       }
+       case 17:{
+         pl.gold = atoi(line);
+         break;
+       }
+       case 18:{
+         pl.weapon_name = [NSString stringWithUTF8String:line];
+         break;
+       }
+       case 19:{
+         pl.armor_name = [NSString stringWithUTF8String:line];
+         break;
+       }
+       case 20:{
+         pl.defense = atoi(line);
+         break;
+       }
+       case 21:{
+         pl.extra_str = atoi(line);
+         break;
+       }
+       case 22:{
+         pl.extra_intel = atoi(line);
+         break;
+       }
+       case 23:{
+         [pl.abilities replaceObjectAtIndex: 0 withObject: [NSNumber numberWithInteger:atoi(line)]];
+         break;
+       }
+       case 24:{
+         [pl.abilities replaceObjectAtIndex: 1 withObject: [NSNumber numberWithInteger:atoi(line)]];
+         break;
+       }
+       case 25:{
+         [pl.abilities replaceObjectAtIndex: 2 withObject: [NSNumber numberWithInteger:atoi(line)]];
+         break;
+       }
+       case 26:{
+         [pl.abilities replaceObjectAtIndex: 3 withObject: [NSNumber numberWithInteger:atoi(line)]];
+         break;
+       }
+       default:{
+         break;
+       }
+     }
+     i++;
+  }
+  return 0;
+}
+
+int print_saves(){
+  DIR *d;
+  struct dirent *dir;
+  d = opendir("saves");
+  if(!d){
+    mkdir("saves", 0777);
+  }
+  while((dir = readdir(d)) != NULL){
+      if(strcmp(dir->d_name,".") != 0 && strcmp(dir->d_name,"..") != 0){
+        printf("\t%s\n", dir->d_name);
+      }
+  }
+  closedir(d);
+  printf("\n\n");
+  return 0;
 }
 
 int main (int argc, const char * argv[]){
@@ -34,6 +183,7 @@ int main (int argc, const char * argv[]){
       //set up initial game variables
       char name[20];
       char class_name[10];
+      Player * pl = [Player PlayerWithName:@"Default" andClass: 0];
 
       //setup current store items
       NSMutableString * current_weapon_name = [NSMutableString stringWithUTF8String:Weapon_Adjectives[rand() % 8]];
@@ -45,23 +195,66 @@ int main (int argc, const char * argv[]){
       [current_armor_name appendString: [NSString stringWithUTF8String:Armor_Types[rand() % 8]]];
       int current_armor_defense = rand() % 2 + 2;
 
-      //get name and class
-      puts("What name will you be known as?");
-      fgets(name,20,stdin);
-      puts("What is your profession? (warrior = 0, mage = 1, thief = 2)");
-      fgets(class_name, 10, stdin);
-      int class = atoi(class_name);
-      //keep going until user requests a usable class
-      while (class < 0 || class > 2){
-        puts("I didn't understand that... What is your profession? (warrior = 0, mage = 1, thief = 2)");
-        fgets(class_name, 10, stdin);
-        class = atoi(class_name);
+      char load_or_new[20] = "none";
+      while(strcmp(load_or_new, "load") != 0 && strcmp(load_or_new, "new") != 0){
+        printf("Welcome to RPGeez. Load game or new game? Type \"load\" or \"new\".\n> ");
+        fgets(load_or_new,20,stdin);
+        //checking for newline at end, remove if found
+        char lastLetter = load_or_new[strlen(load_or_new) - 1];
+        if(lastLetter == 10){
+          load_or_new[strlen(load_or_new) - 1] = 0;
+        }
       }
-      //build player object
-      strtok(name, "\n");
-      NSString * player_name = [NSString stringWithUTF8String:name];
-      Player * pl = [Player PlayerWithName:player_name andClass: class];
-      pl.location = Town;
+      if(strcmp(load_or_new, "load") == 0){
+        char file[20] = "none";
+        char path[1000] = "none";
+        strcat(path, "saves/");
+        strcat(path, file);
+        while(!file_exist(path)){
+          memset(path, 0, 255);
+          printf("Valid saves: \n");
+          print_saves();
+          printf("Choose a save...\n> ");
+          fgets(file, 20, stdin);
+          //checking for newline at end
+          char lastLetter = file[strlen(file) - 1];
+          if(lastLetter == 10){
+            file[strlen(file) - 1] = 0;
+          }
+          strcat(path, "saves/");
+          strcat(path, file);
+        }
+        load(pl, path);
+      }
+      else if(strcmp(load_or_new, "new") == 0){
+        //get name and class
+        puts("What name will you be known as?");
+        fgets(name,20,stdin);
+        int i = 0;
+        for(; i < strlen(name); i++){
+          if(name[i] == ' '){
+            name[i] = '_';
+          }
+        }
+        printf("What is your profession?\nType a number 1-3.\n");
+        printf("\t[1] Warrior\n\t[2] Mage\n\t[3] Thief\n> ");
+        fgets(class_name, 10, stdin);
+        int class = atoi(class_name);
+        class--;
+        //keep going until user requests a usable class
+        while (class < 0 || class > 2){
+          puts("Please type a number 1-3 to select a class.");
+          fgets(class_name, 10, stdin);
+          class = atoi(class_name);
+        }
+        //build player object
+        strtok(name, "\n");
+        NSString * player_name = [NSString stringWithUTF8String:name];
+        //remove the player object that was made for loading, create new player
+        [pl release];
+        pl = [Player PlayerWithName:player_name andClass: class];
+        pl.location = Town;
+      }
 
       printf("\nWelcome %s the %s to RPGeez.\n", [pl.name UTF8String], Player_Classes[pl.class]);
       printf("::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\n\n");
@@ -90,11 +283,12 @@ int main (int argc, const char * argv[]){
           //ask for user attack
           int attack = -1;
           while(attack != [[pl.abilities objectAtIndex: 0] intValue] && attack != [[pl.abilities objectAtIndex: 1] intValue] && attack != [[pl.abilities objectAtIndex: 2] intValue] && attack != [[pl.abilities objectAtIndex: 3] intValue]){
+            printf("Type a number 1-4 to use an ability.\n");
             printf("Valid abilities: \n");
             int i = 1;
             for(NSNumber * ability in pl.abilities){
               if([ability intValue] != None){
-                printf("\t %s (costs %d MP, %d casts left) = type \"%d\" to use... \n", Player_Abilities[[ability intValue]], player_manaCosts[[ability intValue]], casts[[ability intValue]], i);
+                printf("   [%d]  %s  (costs %d MP, %d casts left)\n", i, Player_Abilities[[ability intValue]], player_manaCosts[[ability intValue]], casts[[ability intValue]]);
               }
               i++;
             }
@@ -184,12 +378,38 @@ int main (int argc, const char * argv[]){
 
         printf("\n\n");
         printf("You are currently in the %s...\n", (char *)Player_Locations[pl.location]);
+        switch(pl.location){
+          case Grasslands:
+            printf("This area is recommended for all levels.\n");
+            break;
+          case Desert:
+            printf("This area is recommended for levels 5+.\n");
+            if(pl.level < 5){
+              printf("Warning: You are only level %d!\n", pl.level);
+            }
+            break;
+          case Forest:
+            printf("This area is recommended for levels 10+.\n");
+            if(pl.level < 10){
+              printf("Warning: You are only level %d!\n", pl.level);
+            }
+            break;
+          case Mountains:
+            printf("This area is recommended for levels 15+.\n");
+            if(pl.level < 15){
+              printf("Warning: You are only level %d!\n", pl.level);
+            }
+            break;
+          default:
+            break;
+        }
         printf("What do you want to do?\n> ");
         char action[2000];
         fgets(action, 2000, stdin);
         char delim[] = " ";
         char * nextWord = strtok(action, delim);
         char lastLetter = nextWord[strlen(nextWord) - 1];
+        //checking for newline
         if(lastLetter == 10){
           nextWord[strlen(nextWord) - 1] = 0;
         }
@@ -200,7 +420,9 @@ int main (int argc, const char * argv[]){
           printf("\t go north/east/south/west\n");
           printf("\t search (shortcut: s)\n");
           printf("\t equipment\n");
+          printf("\t abilities\n");
           printf("\t status\n");
+          printf("\t map\n");
           printf("\t save\n");
           printf("\t load [player name]\n");
           printf("Only valid in town:\n");
@@ -532,141 +754,26 @@ int main (int argc, const char * argv[]){
           fprintf(fp, "%d\n", [[pl.abilities objectAtIndex: 2] intValue]);
           fprintf(fp, "%d\n", [[pl.abilities objectAtIndex: 3] intValue]);
           fclose(fp);
-          printf("Save file written.\n");
+          printf("Save file written. Type \"load %s\" to load this save in the future.\n", [pl.name UTF8String]);
         }
         else if (strcmp(nextWord, "load") == 0){
+          //dont read this code block its not good
           char * dir = strtok(NULL, delim);
           char * file = strtok(dir, "\n"); //remove trailing newline from input
           char path[1000] = { };
           strcat(path, "saves/");
           strcat(path, file);
           if(file_exist(path)){
-            FILE * fp = fopen(path,"r");
-            char line [128];
-            int i = 0;
-            while(fgets(line, sizeof(line), fp) != NULL){
-               switch(i){
-                 case 0:{
-                   pl.name = [NSString stringWithUTF8String:line];
-                   break;
-                 }
-                 case 1:{
-                   pl.level = atoi(line);
-                   break;
-                 }
-                 case 2:{
-                   pl.xp_cap = atoi(line);
-                   break;
-                 }
-                 case 3:{
-                   pl.xp = atoi(line);
-                   break;
-                 }
-                 case 4:{
-                   pl.class = atoi(line);
-                   break;
-                 }
-                 case 5:{
-                   pl.location = atoi(line);
-                   break;
-                 }
-                 case 6:{
-                   pl.medals = atoi(line);
-                   break;
-                 }
-                 case 7:{
-                   pl.max_hp = atoi(line);
-                   break;
-                 }
-                 case 8:{
-                   pl.health = atoi(line);
-                   break;
-                 }
-                 case 10:{
-                   pl.max_str = atoi(line);
-                   break;
-                 }
-                 case 11:{
-                   pl.strength = atoi(line);
-                   break;
-                 }
-                 case 12:{
-                   pl.max_mana = atoi(line);
-                   break;
-                 }
-                 case 13:{
-                   pl.mana = atoi(line);
-                   break;
-                 }
-                 case 14:{
-                   pl.max_int = atoi(line);
-                   break;
-                 }
-                 case 15:{
-                   pl.intelligence = atoi(line);
-                   break;
-                 }
-                 case 16:{
-                   pl.max_speed = atoi(line);
-                   break;
-                 }
-                 case 17:{
-                   pl.speed = atoi(line);
-                   break;
-                 }
-                 case 18:{
-                   pl.gold = atoi(line);
-                   break;
-                 }
-                 case 19:{
-                   pl.weapon_name = [NSString stringWithUTF8String:line];
-                   break;
-                 }
-                 case 20:{
-                   pl.armor_name = [NSString stringWithUTF8String:line];
-                   break;
-                 }
-                 case 21:{
-                   pl.defense = atoi(line);
-                   break;
-                 }
-                 case 22:{
-                   pl.extra_str = atoi(line);
-                   break;
-                 }
-                 case 23:{
-                   pl.extra_intel = atoi(line);
-                   break;
-                 }
-                 case 24:{
-                   [pl.abilities replaceObjectAtIndex: 0 withObject: [NSNumber numberWithInteger:atoi(line)]];
-                   break;
-                 }
-                 case 25:{
-                   [pl.abilities replaceObjectAtIndex: 1 withObject: [NSNumber numberWithInteger:atoi(line)]];
-                   break;
-                 }
-                 case 26:{
-                   [pl.abilities replaceObjectAtIndex: 2 withObject: [NSNumber numberWithInteger:atoi(line)]];
-                   break;
-                 }
-                 case 27:{
-                   [pl.abilities replaceObjectAtIndex: 3 withObject: [NSNumber numberWithInteger:atoi(line)]];
-                   break;
-                 }
-                 default:{
-                   break;
-                 }
-               }
-               i++;
-            }
+            load(pl, path);
           }
           else{
-            printf("Can't find the save file %s\nCheck your spelling!\n", path);
+            printf("Can't find the save file \"%s\"\nCheck your spelling!\n", file);
+            printf("Valid saves:\n");
+            print_saves();
           }
         }
       }
-      [player_name release];
+      [pl.name release];
       [pl release];
       [pool release];
       return 0;
